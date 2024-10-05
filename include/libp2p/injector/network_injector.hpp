@@ -42,6 +42,7 @@
 #include <libp2p/security/tls.hpp>
 #include <libp2p/security/tls/ssl_context.hpp>
 #include <libp2p/transport/impl/upgrader_impl.hpp>
+#include <libp2p/transport/quic/transport.hpp>
 #include <libp2p/transport/tcp.hpp>
 
 // clang-format off
@@ -147,9 +148,9 @@ namespace libp2p::injector {
    * );
    * @endcode
    */
-  inline auto useKeyPair(const crypto::KeyPair &key_pair) {
+  inline auto useKeyPair(crypto::KeyPair key_pair) {
     return boost::di::bind<crypto::KeyPair>().template to(
-        key_pair)[boost::di::override];
+        std::move(key_pair))[boost::di::override];
   }
 
   /**
@@ -344,7 +345,7 @@ namespace libp2p::injector {
         di::bind<layer::LayerAdaptor *[]>().template to<layer::WsAdaptor, layer::WssAdaptor>(),  // NOLINT
         di::bind<security::SecurityAdaptor *[]>().template to<security::Plaintext, security::Secio, security::Noise, security::TlsAdaptor>(),  // NOLINT
         di::bind<muxer::MuxerAdaptor *[]>().template to<muxer::Yamux, muxer::Mplex>(),  // NOLINT
-        di::bind<transport::TransportAdaptor *[]>().template to<transport::TcpTransport>(),  // NOLINT
+        di::bind<transport::TransportAdaptor *[]>().template to<transport::TcpTransport, transport::QuicTransport>(),  // NOLINT
 
         // user-defined overrides...
         std::forward<decltype(args)>(args)...
